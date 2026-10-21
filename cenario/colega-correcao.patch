@@ -1,0 +1,24 @@
+--- a/backend/catalogo/endpoints.py
++++ b/backend/catalogo/endpoints.py
+@@ -4,6 +4,6 @@
+ def consultar_recurso(servico, identificador):
+     registro = servico.consultar(identificador)
+     if registro is None:
+-        # Defeito conhecido: ausência hoje se parece com sucesso.
+-        return 200, {}
++        # Correção da outra pessoa: ausência tem resposta explícita.
++        return 404, {"erro": {"codigo": "RECURSO_INEXISTENTE", "id": identificador}}
+     return 200, resposta_v1(registro)
+--- /dev/null
++++ b/tests/test_ausencia.py
+@@ -0,0 +1,10 @@
++import unittest
++from backend.catalogo.servico import ServicoCatalogo
++from backend.catalogo.endpoints import consultar_recurso
++
++
++class AusenciaTest(unittest.TestCase):
++    def test_recurso_inexistente(self):
++        status, payload = consultar_recurso(ServicoCatalogo(), "ausente")
++        self.assertEqual(status, 404)
++        self.assertEqual(payload, {"erro": {"codigo": "RECURSO_INEXISTENTE", "id": "ausente"}})
