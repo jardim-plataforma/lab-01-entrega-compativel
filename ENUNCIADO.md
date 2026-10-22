@@ -8,8 +8,6 @@ Uma equipe mantém um catálogo consultado pelo portal de operações e por uma 
 
 Uma nova equipe precisa integrar um painel de acompanhamento. Ela precisa dos três campos existentes e também de `unidade` e `responsavel`. Esses dados já estão no armazenamento, mas ainda não são expostos pela API. O novo consumidor deve receber os cinco campos preenchidos para os registros da massa de teste.
 
-A integração antiga não poderá ser atualizada nesta entrega. Você precisa disponibilizar a nova capacidade, preservando as consultas existentes. Este contrato e os nomes dos campos são definições fictícias deste kit, não requisitos extraídos de código da RNP.
-
 Paralelamente, outra pessoa está corrigindo a consulta de recursos inexistentes: em vez de HTTP 200 com objeto vazio, ela deverá responder HTTP 404 com um erro estruturado. Essa entrega toca o mesmo módulo de endpoint. Você começa sua implementação sem esperar, mas precisa integrar e validar as duas mudanças antes de concluir.
 
 ## Resultado esperado
@@ -23,8 +21,6 @@ Neste laboratório, “não interromper” significa preservar o comportamento d
 Comece da referência `lab01-inicio`, criada conforme `docs/cenario-git.md`. A branch temporária `feat/consulta-ampliada` será sua branch de resolução. Ela recebe commits e um PR para `main`; não é uma segunda linha permanente. O snapshot inicial continuará acessível pela tag.
 
 Primeiro execute o sistema, os clientes e a suíte. Leia o caminho da requisição no diagrama e identifique o contrato de cada consumidor. Experimente consultar um ID ausente para conhecer o defeito já registrado. Depois escolha como expor os dados novos e explique a decisão no PR.
-
-Não há prescrição de solução pronta: avalie uma interface versionada ou uma extensão explicitamente solicitada, por exemplo. Identificar o chamador não substitui definir o contrato. Este kit não implementa autenticação; um nome de consumidor informado na requisição não comprova identidade.
 
 Enquanto a feature estiver em andamento, introduza a correção concorrente seguindo o roteiro. Integre a `main` atualizada à feature, resolva conflitos se houver e examine a compatibilidade mesmo se não houver conflito textual. Preserve os testes dos consumidores existentes e acrescente testes do novo contrato e dos erros da interface escolhida.
 
@@ -41,5 +37,3 @@ Enquanto a feature estiver em andamento, introduza a correção concorrente segu
 ## Seu papel
 
 O código de aplicação é o material de treino para praticar integração, compatibilidade, revisão, diagnóstico e recuperação. Isso não transfere para você a responsabilidade corporativa de desenvolver regras de negócio. Em um trabalho real, a equipe dona da aplicação participaria da decisão do contrato; Plataforma apoiaria o caminho de entrega e os controles aplicáveis.
-
-Sua resolução será escrita quando você executar o trabalho, com as decisões e resultados reais. Não há relatório preenchido nem solução pronta neste pacote.
