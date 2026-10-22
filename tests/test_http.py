@@ -80,4 +80,3 @@ class HttpTest(unittest.TestCase):
                     "RECURSO_INEXISTENTE",
                 )
                 self.assertEqual(payload["erro"]["id"], "ausente")
-
