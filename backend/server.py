@@ -4,7 +4,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit, unquote
 from backend.catalogo.servico import ServicoCatalogo
-from backend.catalogo.endpoints import consultar_recurso
+from backend.catalogo.endpoints import consultar_recurso, consultar_recurso_v2
 
 ROOT = Path(__file__).resolve().parents[1]
 SERVICO = ServicoCatalogo()
@@ -29,10 +29,17 @@ class Handler(BaseHTTPRequestHandler):
         if path in ASSETS:
             name, mime = ASSETS[path]
             return self.responder(200, (ROOT/"frontend"/name).read_bytes(), mime)
-        prefix = "/api/v1/recursos/"
-        if path.startswith(prefix) and path[len(prefix):] and "/" not in path[len(prefix):]:
-            status, body = consultar_recurso(SERVICO, path[len(prefix):])
+
+        prefix_v2 = "/api/v2/recursos/"
+        if path.startswith(prefix_v2) and path[len(prefix_v2):] and "/" not in path[len(prefix_v2):]:
+            status, body = consultar_recurso_v2(SERVICO, path[len(prefix_v2):])
             return self.responder(status, body)
+
+        prefix_v1 = "/api/v1/recursos/"
+        if path.startswith(prefix_v1) and path[len(prefix_v1):] and "/" not in path[len(prefix_v1):]:
+            status, body = consultar_recurso(SERVICO, path[len(prefix_v1):])
+            return self.responder(status, body)
+
         self.responder(404, {"erro": {"codigo": "ROTA_INEXISTENTE"}})
 
 if __name__ == "__main__":
