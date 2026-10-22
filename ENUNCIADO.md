@@ -26,7 +26,7 @@ Enquanto a feature estiver em andamento, introduza a correção concorrente segu
 
 ## Critérios de aceite
 
-- Portal A e integração B continuam aceitando todos os recursos existentes, sem modificar seus contratos para esconder uma quebra.
+- Portal A e integração B continuam funcionando para todos os recursos existentes. A integração B deve manter seu contrato estrito de três campos; não altere B para aceitar campos extras. Se a solução mudar a interface usada pelo portal, justifique e documente a transição.
 - O consumidor C recebe os cinco campos não vazios. A URL e qualquer seleção de versão ficam documentadas; o programa `consumidores/novo_consumidor.py` permite verificar uma URL completa, incluindo query string se adotada.
 - Recursos inexistentes retornam HTTP 404 com `erro.codigo = RECURSO_INEXISTENTE` e `erro.id` igual ao ID solicitado, tanto na interface antiga quanto na interface que você entregar.
 - A correção concorrente e seu teste sobrevivem à integração. Testes novos validam também o caminho HTTP real, além de funções isoladas.

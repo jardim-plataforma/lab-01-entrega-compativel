@@ -1,33 +1,39 @@
-# Arquitetura existente
+# Arquitetura da solução
 
-As setas abaixo mostram requisições/chamadas. As respostas retornam pelo mesmo caminho.
+As setas representam requisições. As respostas retornam pelo mesmo caminho.
 
 ```mermaid
 flowchart TD
-  A["Portal A · navegador"] -->|"GET /api/v1/recursos/id"| H["Entrada HTTP"]
-  B["Integração B · cliente legado"] -->|"mesma API v1"| H
-  H --> E["Endpoint + contrato v1"]
-  E --> S["Serviço de consulta"]
+  A["Portal A · navegador"] -->|"GET /api/v2/recursos/id"| H["Entrada HTTP"]
+  B["Integração B · cliente legado"] -->|"GET /api/v1/recursos/id"| H
+  C["Consumidor C · sonda de contrato"] -->|"GET /api/v2/recursos/id"| H
+  H --> E1["Endpoint + contrato v1"]
+  H --> E2["Endpoint + contrato v2"]
+  E1 --> S["Serviço de consulta"]
+  E2 --> S
   S --> R["Repositório de dados"]
   R --> D["JSON · dados fictícios"]
 ```
 
-O portal é um frontend funcional. A integração B é um programa de terminal, representando outro sistema consumidor. Ambos consultam o mesmo backend. O JSON já contém cinco campos por registro; a projeção v1 retorna somente três. Não são três livros nem três serviços obrigatoriamente: são três campos em cada resposta de recurso.
+## Responsabilidades
 
-## Mudança solicitada
+- **Portal A:** frontend que consulta a API v2 e exibe `id`, `nome`, `status`, `unidade` e `responsavel`.
+- **Integração B:** programa de terminal que permanece na API v1 e valida exatamente os três campos originais.
+- **Consumidor C:** sonda de contrato que consulta a API v2 e valida os cinco campos.
+- **Entrada HTTP:** encaminha as requisições para a interface correspondente.
+- **Contratos:** definem os campos expostos em cada versão da API.
+- **Serviço e repositório:** consultam os mesmos registros armazenados no JSON fictício.
 
-```mermaid
-flowchart TD
-  A["Portal A · contrato atual"] --> V["API existente preservada"]
-  B["Legado B · contrato estrito"] --> V
-  C["Novo painel C · cinco campos"] -.-> N["Interface a definir no exercício"]
-  V --> S["Mesmo serviço de catálogo"]
-  N -.-> S
-  S --> D["Mesmos registros"]
-```
+## Evolução do contrato
 
-As linhas tracejadas representam o que falta implementar. O painel C é representado por uma sonda de contrato, sem frontend pronto. A decisão de interface é parte da sua resolução.
+A API v1 preserva o formato original de três campos. A API v2 acrescenta `unidade` e `responsavel`, sem modificar a resposta da v1. Assim, o consumidor estrito B continua funcionando sem precisar aceitar campos adicionais.
 
-## Duas entregas simultâneas
+A versão utilizada por cada consumidor deve ser explícita e documentada. Alterar uma resposta compartilhada sem avaliar todos os consumidores pode introduzir uma quebra mesmo quando o código compila e a integração Git é concluída sem conflitos.
 
-A feature amplia a consulta. A correção trata ausência. Ambas passam por `endpoints.py`, mas concorrência não garante conflito textual: o Git pode juntar mudanças que, combinadas, estejam semanticamente erradas. A validação dos resultados é indispensável.
+## Tratamento de ausência
+
+Nas duas versões, um identificador inexistente em uma rota válida resulta em HTTP 404 e erro estruturado com `erro.codigo = RECURSO_INEXISTENTE` e `erro.id` igual ao identificador solicitado. Uma rota desconhecida utiliza o erro `ROTA_INEXISTENTE`.
+
+## Limites
+
+O ambiente utiliza um servidor HTTP local e arquivos JSON. O exercício verifica contratos, integração, testes e recuperação no Git; não demonstra disponibilidade contínua, deploy sem downtime ou comportamento em infraestrutura de produção.

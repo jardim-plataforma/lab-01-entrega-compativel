@@ -1,45 +1,76 @@
 # Contratos do cenário
 
-## API existente
+## API v1 — contrato legado
 
 `GET /api/v1/recursos/svc-001` responde HTTP 200:
 
 ```json
-{"id":"svc-001","nome":"Consulta de unidades","status":"ativo"}
+{
+  "id": "svc-001",
+  "nome": "Consulta de unidades",
+  "status": "ativo"
+}
 ```
 
-| Consumidor | Campos necessários | Campos extras |
-|---|---|---|
-| A — portal | id, nome, status: strings não vazias | Tolera |
-| B — integração legada | Exatamente id, nome, status: strings não vazias | Rejeita |
-| C — novo painel | id, nome, status, unidade, responsavel: strings não vazias | Tolera |
+A API v1 mantém exatamente os três campos originais. A integração legada B depende desse formato e rejeita campos extras.
 
-Todos os campos desta tabela pertencem à RESPOSTA da API. O usuário da consulta informa o identificador; ele não preenche os campos do cadastro.
+## API v2 — contrato ampliado
 
-Um campo opcional pode estar ausente. Um campo anulável pode estar presente com `null`. São decisões diferentes. Para C, os dois campos novos são obrigatórios. Torná-los opcionais em uma especificação não fará o legado B passar a aceitá-los.
-
-Não edite B para aceitar campos extras: ele representa um consumidor que está fora do alcance da sua entrega. Essa restrição permite avaliar compatibilidade de verdade.
-
-## Ausência
-
-Estado inicial conhecido: ID ausente retorna HTTP 200 e `{}`. O portal acusa resposta inválida.
-
-Contrato da correção concorrente, a ser preservado:
+`GET /api/v2/recursos/svc-001` responde HTTP 200:
 
 ```json
-{"erro":{"codigo":"RECURSO_INEXISTENTE","id":"ausente"}}
+{
+  "id": "svc-001",
+  "nome": "Consulta de unidades",
+  "status": "ativo",
+  "unidade": "Operações",
+  "responsavel": "Equipe Aurora"
+}
 ```
 
-Status HTTP: 404. Rotas desconhecidas têm outro erro, `ROTA_INEXISTENTE`. Não confunda rota inexistente com recurso inexistente em uma rota válida.
+A API v2 mantém os três campos originais e acrescenta `unidade` e `responsavel`. Os cinco campos devem conter strings não vazias nos registros da massa de teste.
+
+## Consumidores
+
+| Consumidor | Interface utilizada | Contrato esperado |
+|---|---|---|
+| A — portal | API v2 | Os cinco campos |
+| B — integração legada | API v1 | Exatamente os três campos originais |
+| C — novo consumidor de teste | API v2 | Os cinco campos |
+
+Os campos pertencem à resposta da API. O usuário da consulta informa o identificador do recurso; ele não preenche os campos do cadastro.
+
+Não altere o consumidor B para aceitar campos extras: ele representa um sistema legado fora do alcance da entrega.
+
+## Ausência de recurso
+
+Quando a rota é válida, mas o identificador não existe, tanto a API v1 quanto a API v2 respondem HTTP 404 com este formato:
+
+```json
+{
+  "erro": {
+    "codigo": "RECURSO_INEXISTENTE",
+    "id": "ausente"
+  }
+}
+```
+
+O valor de `erro.id` deve corresponder ao identificador solicitado.
+
+Uma rota desconhecida tem outro erro, `ROTA_INEXISTENTE`. Não confunda uma rota inválida com um recurso inexistente em uma rota válida.
 
 ## Validar o novo consumidor
 
-Após implementar, com o servidor reiniciado para carregar o código atualizado:
+Com o servidor em execução, execute:
 
 ```sh
-python -m consumidores.novo_consumidor --url "http://127.0.0.1:8080/SUA-INTERFACE/svc-001"
+python -m consumidores.novo_consumidor --url "http://127.0.0.1:8080/api/v2/recursos/svc-001"
 ```
 
-Substitua a URL pelo contrato escolhido. Esse comando não é esperado passar na base: não há endpoint pronto para C. Não coloque uma falha esperada de preparação como se fosse uma falha da entrega final.
+Para testar outro recurso, substitua `svc-001` pelo identificador desejado. A opção `--url` recebe a URL completa; isso também permite testar parâmetros de query string caso sejam adotados futuramente.
 
-A sonda é um smoke test; acrescente testes automatizados da interface que você escolher, cobrindo os demais IDs e ausência. Executar apenas a sonda de um ID não certifica toda a entrega.
+A sonda é um smoke test, não substitui a suíte automatizada. Os testes devem cobrir os registros existentes, os contratos v1 e v2 e a ausência de recursos por HTTP.
+
+## Compatibilidade
+
+A API v2 permite ampliar os dados entregues ao portal e ao novo consumidor sem adicionar campos à resposta estrita consumida por B. A existência de duas versões não garante compatibilidade por si só: as rotas, os formatos das respostas e os testes precisam continuar coerentes.

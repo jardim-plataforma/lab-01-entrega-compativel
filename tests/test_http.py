@@ -43,3 +43,41 @@ class HttpTest(unittest.TestCase):
         with self.assertRaises(HTTPError) as caught:
             urlopen(self.url + "/rota-inexistente")
         self.assertEqual(caught.exception.code, 404)
+
+
+    def test_contratos_v1_e_v2(self):
+        with urlopen(self.url + "/api/v1/recursos/svc-001") as response:
+            payload_v1 = json.load(response)
+
+        with urlopen(self.url + "/api/v2/recursos/svc-001") as response:
+            self.assertEqual(response.status, 200)
+            payload_v2 = json.load(response)
+
+        self.assertEqual(
+            set(payload_v1),
+            {"id", "nome", "status"},
+        )
+        self.assertEqual(
+            set(payload_v2),
+            {"id", "nome", "status", "unidade", "responsavel"},
+        )
+
+        for campo in ("id", "nome", "status"):
+            self.assertEqual(payload_v1[campo], payload_v2[campo])
+
+    def test_recurso_inexistente_v1_e_v2(self):
+        for versao in ("v1", "v2"):
+            with self.subTest(versao=versao):
+                url = self.url + f"/api/{versao}/recursos/ausente"
+
+                with self.assertRaises(HTTPError) as caught:
+                    urlopen(url)
+
+                self.assertEqual(caught.exception.code, 404)
+                payload = json.load(caught.exception)
+                self.assertEqual(
+                    payload["erro"]["codigo"],
+                    "RECURSO_INEXISTENTE",
+                )
+                self.assertEqual(payload["erro"]["id"], "ausente")
+
